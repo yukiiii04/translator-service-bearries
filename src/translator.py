@@ -2,7 +2,7 @@ import openai
 import os
 
 client = openai.OpenAI(
-    api_key=os.getenv(NODEBB_API_KEY)  # Your OpenAI API key
+    api_key=os.getenv("NODEBB_API_KEY")  # Your OpenAI API key
 )
 
 def get_translation(post: str) -> str:
