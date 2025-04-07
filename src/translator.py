@@ -9,7 +9,7 @@ def get_translation(post: str) -> str:
     context = "Provide the English translation of the given text which may or may not be written in English, using the following format.\n"\
               "Given text: Hier ist dein erstes Beispiel.\n"\
               "Here is your first example.\n"\
-              "If you do not understand the text, return the original text\n" # Insert context
+              "If it cannot be translated, return the original text\n" # Insert context
     response = client.chat.completions.create(
       model="gpt-4o-mini",  # model name
       messages=[
@@ -44,17 +44,11 @@ def get_language(post: str) -> str:
           }
         ]
       )
-    print(response.choices[0].message.content.strip())
     return response.choices[0].message.content.strip()
 
 def translate_content(content: str) -> tuple[bool, str]:
     language = get_language(content).strip()
     translation = get_translation(content).strip()
-    # if ("--ERROR--" in language or "--ERROR--" in translation):
-    #     return (False, "--ERROR--")
-    # elif not (language.startswith("language: ") or translation.startswith("Translation: ")):
-    #     return (False, "--ERROR--")
-    print(f"Language: {language}")
     if language != "English":
         return (False, translation)
     return ("English" in language, translation)
