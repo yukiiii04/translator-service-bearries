@@ -1,23 +1,20 @@
 from src.translator import translate_content
 from src.translator import get_language
+from sentence_transformers import SentenceTransformer, util
 
 # Chinese
 def test_chinese():
     is_english, translated_content = translate_content("这是一条中文消息")
     assert is_english == False
     assert "Chinese" in translated_content
+    assert eval_single_response_translation("This is a Chinese message", translated_content) > 0.8
 
 # French
 def test_french():
     is_english, translated_content = translate_content("Ceci est un message en français")
     assert is_english == False
     assert "French" in translated_content
-
-# English
-def test_english():
-    is_english, translated_content = translate_content("This is an English message")
-    assert is_english == True
-    assert "English" in translated_content
+    assert eval_single_response_translation("This is a message in French", translated_content) > 0.8
 
 # LLM normal response
 def test_llm_normal_response():
@@ -36,6 +33,22 @@ def test_two_languages():
     is_english, translated_content = translate_content("你好我叫安娜贝尔我是 Nevermore 里的一个角色")
     print(f"is_english: {is_english}")
     assert is_english == False
+    assert eval_single_response_translation("Hello my name is Annabelle. I am a character in Nevermore.", translated_content) > 0.8
+
+def test_complicated_1():
+    original_content = "In a quiet town where clocks all ticked in reverse, a girl named Elara discovered she could remember the future but forget the past. Each morning, she woke with vivid visions of what would happen that day—conversations not yet had, choices not yet made—but no recollection of who she was. One evening, while following a vision of meeting a boy with a blue kite, she found herself laughing like she used to, though she didn’t know why. As the kite danced in the sky and the boy smiled, something inside her whispered: This is home, and for the first time, she decided not to chase the next future—just to stay."
+    is_english, translated_content = translate_content(original_content)
+    assert is_english == True
+    assert original_content == translated_content
+
+def test_complicated_2():
+    original_content = "En una ciutat tranquil·la on els rellotges marcaven al revés, una noia anomenada Elara va descobrir que podia recordar el futur però oblidar el passat. Cada matí, es despertava amb visions vívides del que passaria aquell dia: converses encara no tingudes, eleccions encara no preses, però sense record de qui era. Un vespre, mentre seguia la visió de conèixer un noi amb un estel blau, es va trobar rient com abans, encara que no sabia per què. Mentre l'estel ballava al cel i el nen somreia, alguna cosa dins d'ella va xiuxiuejar: Aquesta és casa i, per primera vegada, va decidir no perseguir el proper futur, només quedar-se."
+    intended_translation = "In a quiet town where clocks all ticked in reverse, a girl named Elara discovered she could remember the future but forget the past. Each morning, she woke with vivid visions of what would happen that day—conversations not yet had, choices not yet made—but no recollection of who she was. One evening, while following a vision of meeting a boy with a blue kite, she found herself laughing like she used to, though she didn’t know why. As the kite danced in the sky and the boy smiled, something inside her whispered: This is home, and for the first time, she decided not to chase the next future—just to stay."
+    is_english, translated_content = translate_content(original_content)
+    assert is_english == False
+    assert get_language(original_content) == "Catalan"
+    print(eval_single_response_translation(intended_translation, translated_content))
+    assert eval_single_response_translation(intended_translation, translated_content) > 0.8
 
 ######################## Test our get_language function ########################
 def test_languages():
@@ -54,3 +67,10 @@ def test_languages():
     assert get_language("Мен макарон жегенді қатты жақсы көремін") == "Kazakh"
     assert get_language("M'agrada molt menjar pasta") == "Catalan"
 
+# testing translation accuracy
+def eval_single_response_translation(expected_answer: str, llm_response: str) -> float:
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    embedding1 = model.encode([expected_answer])
+    embedding2 = model.encode([llm_response])
+    similarities = model.similarity(embedding1, embedding2)
+    return similarities[0][0]
