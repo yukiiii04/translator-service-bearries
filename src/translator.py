@@ -30,7 +30,7 @@ def get_language(post: str) -> str:
               "Given text: Hier ist dein erstes Beispiel.\n"\
               "German\n"\
               "If it is gibberish, return 'English'\n"\
-            #   "If it cannot be translated, return --ERROR--\n" # Insert context
+ 
     response = client.chat.completions.create(
       model="gpt-4o-mini",  # model name
       messages=[

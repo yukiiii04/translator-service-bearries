@@ -67,7 +67,7 @@ def test_languages():
     assert get_language("Мен макарон жегенді қатты жақсы көремін") == "Kazakh"
     assert get_language("M'agrada molt menjar pasta") == "Catalan"
 
-# testing translation accuracy
+######################## testing translation accuracy #########################
 def eval_single_response_translation(expected_answer: str, llm_response: str) -> float:
     model = SentenceTransformer("all-MiniLM-L6-v2")
     embedding1 = model.encode([expected_answer])
