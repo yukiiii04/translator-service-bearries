@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from src.translator import translate_content
 from src.translator import get_language
 from sentence_transformers import SentenceTransformer, util
@@ -74,3 +75,44 @@ def eval_single_response_translation(expected_answer: str, llm_response: str) ->
     embedding2 = model.encode([llm_response])
     similarities = model.similarity(embedding1, embedding2)
     return similarities[0][0]
+
+####################### Mock tests ###########################################
+@patch("src.translator.translate_content")
+def test_mock_llm_normal_response(mock_translate_content):
+    # Mock the model's response to return a normal English message
+    mock_translate_content.return_value = (True, "This is an English message.")
+    is_english, translated_content = translate_content("This is an English message.")
+    assert is_english == True
+    assert translated_content == "This is an English message."
+
+@patch("src.translator.translate_content")
+def test_mock_llm_gibberish_response(mock_translate_content):
+    # Mock the model's response to return gibberish
+    mock_translate_content.return_value = (True, "asdkjhasd lkjhasd!!!")
+    is_english, translated_content = translate_content("asdkjhasd lkjhasd!!!")
+    assert is_english == True
+    assert translated_content == "asdkjhasd lkjhasd!!!"
+
+@patch("src.translator.translate_content")
+def test_mock_llm_empty_input(mock_translate_content):
+    # Mock the model's response to handle empty input
+    mock_translate_content.return_value = (True, "")
+    is_english, translated_content = translate_content("")
+    assert is_english == True
+    assert translated_content == ""
+
+@patch("src.translator.translate_content")
+def test_mock_llm_numeric_input(mock_translate_content):
+    # Mock the model's response to handle numeric input
+    mock_translate_content.return_value = (True, "12345")
+    is_english, translated_content = translate_content("12345")
+    assert is_english == True
+    assert translated_content == "12345"
+
+@patch("src.translator.translate_content")
+def test_mock_llm_special_characters(mock_translate_content):
+    # Mock the model's response to handle special characters
+    mock_translate_content.return_value = (True, "!@#$%^&*()")
+    is_english, translated_content = translate_content("!@#$%^&*()")
+    assert is_english == True
+    assert translated_content == "!@#$%^&*()"
